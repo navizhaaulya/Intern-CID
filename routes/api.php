@@ -30,9 +30,8 @@ Route::delete('/vision-mission/{id}', [VisionMissionController::class, 'delete']
 Route::put('/vision-mission/{id}', [VisionMissionController::class, 'update']);
 
 Route::get('/news', [NewsController::class, 'index']);
-Route::post('/news', [NewsController::class, 'store']);
-Route::delete('/news/{id}', [NewsController::class, 'delete']);
-Route::put('/news/{id}', [NewsController::class, 'update']);
+Route::post('/news/create', [NewsController::class, 'create']);
+Route::post('/news/update-highlight', [NewsController::class, 'updateHighlight']);
 
 Route::get('/events', [EventController::class, 'index']);
 Route::post('/events', [EventController::class, 'store']);
