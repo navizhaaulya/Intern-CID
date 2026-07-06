@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\NewsCategory;
+use App\Models\NewsCategories;
 use App\Models\User;
 
 class News extends Model
@@ -12,7 +12,7 @@ class News extends Model
 
     public function category()
 {
-    return $this->belongsTo(NewsCategory::class, 'category_id');
+    return $this->belongsTo(NewsCategories::class, 'category_id');
 }
 
 public function creator()
