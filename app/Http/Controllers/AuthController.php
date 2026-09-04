@@ -3,73 +3,59 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
-        try {
-            $credentials = $request->validate([
-                'email'    => ['required', 'email'],
-                'password' => ['required', 'string'],
-            ]);
+        $request->validate([
+            'username' => 'required',
+            'password' => 'required'
+        ]);
 
-            if (!$token = Auth::guard('api')->attempt($credentials)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Email atau password salah.',
-                ], 401);
-            }
+        $credentials = [
+            'username' => $request->username,
+            'password' => $request->password
+        ];
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Login berhasil.',
-                'data'    => [
-                    'access_token' => $token,
-                    'token_type'   => 'bearer',
-                    'expires_in'   => Auth::guard('api')->factory()->getTTL() * 60,
-                    'user'         => Auth::guard('api')->user(),
-                ],
-            ]);
+        if (!$token = Auth::guard('api')->attempt($credentials)) {
 
-        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors'  => $e->errors(),
-            ], 422);
+                'message' => 'Username atau password salah.'
+            ],401);
+
         }
-    }
-
-    public function logout(): JsonResponse
-    {
-        Auth::guard('api')->logout();
 
         return response()->json([
             'success' => true,
-            'message' => 'Logout berhasil.',
+            'token' => $token
         ]);
+        
+    }
+    public function me()
+{
+    $user = Auth::guard('api')->user();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated'
+        ], 401);
     }
 
-    public function me(): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'data'    => Auth::guard('api')->user(),
-        ]);
-    }
 
-    public function refresh(): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'access_token' => Auth::guard('api')->refresh(),
-                'token_type'   => 'bearer',
-            ],
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'id' => $user->id,
+            'fullname' => $user->fullname,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role_id' => $user->role_id,
+            'status_code' => $user->status_code,
+        ]
+    ]);
+}
 }

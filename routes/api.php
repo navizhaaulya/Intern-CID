@@ -7,6 +7,10 @@ use App\Http\Controllers\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\bannerController;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\VotingController;
+
 
 
 /*
@@ -19,14 +23,35 @@ use App\Http\Controllers\NewsController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-    Route::get('/news', [NewsController::class, 'index']);
-    Route::middleware(['setguard:api','auth.rest'])->group(function(){
 
-    Route::get('/news/{id}', [NewsController::class, 'show']);
-    Route::post('/news/create', [NewsController::class, 'create']);
-    Route::put('/news/{id}', [NewsController::class, 'update']);
-    Route::delete('/news/{id}', [NewsController::class, 'delete']);
-    Route::patch('/news/update-highlight', [NewsController::class, 'updateHighlight']);
+
+    Route::get('/no-auth/banners', [PublicController::class, 'banners']);
+    Route::get('/no-auth/about', [PublicController::class, 'about']);
+    Route::get('/no-auth/vision-mission', [PublicController::class, 'visionMission']);
+    Route::get('/no-auth/footer', [PublicController::class, 'footer']);
+
+    Route::get('/no-auth/events', [PublicController::class, 'events']);
+    Route::get('/no-auth/events/{slug}', [PublicController::class, 'eventDetail']);
+
+    Route::get('votings', [PublicController::class, 'votings']);
+    
+    Route::get('feedback-categories', [PublicController::class, 'feedbackCategories']);
+    Route::post('feedbacks', [PublicController::class, 'submitFeedback']);
+
+    Route::get('/no-auth/majors', [PublicController::class, 'majors']);
+    Route::get('/no-auth/majors/{slug}', [PublicController::class, 'majorDetail']);
+
+   Route::get('/no-auth/votings', [PublicController::class, 'voting']);
+    Route::get('/no-auth/votings/{slug}', [PublicController::class, 'votingDetail']);
+   
+    Route::get('/no-auth/news', [PublicController::class, 'news']);
+    Route::get('/no-auth/news/{id}', [PublicController::class, 'NewsDetail']);
+
+Route::middleware(['setguard:api','auth.rest'])->group(function(){
+ Route::get('/feedbacks', [PublicController::class, 'feedbacks']);
+
+ Route::post( '/votings/{id}/vote', [VotingController::class, 'vote']);
+ Route::put('/votings/highlight', [VotingController::class, 'updateHighlight']);
 });
 
 Route::middleware('auth:api')->group(function () {
