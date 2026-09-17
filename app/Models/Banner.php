@@ -18,11 +18,6 @@ class Banner extends Model
     const IS_DELETE = true;
     const IS_VIEW = true;
 
-
-    // =========================
-    // FIELD
-    // =========================
-
     const FIELD_LIST = [
         "id",
         "title",
@@ -65,37 +60,23 @@ class Banner extends Model
 
     const FIELD_READONLY = [];
 
-
-    // =========================
-    // FILTER
-    // =========================
-
     const FIELD_FILTERABLE = [
         "id" => [
             "operator" => "=",
         ],
-
         "title" => [
             "operator" => "ILIKE",
         ],
-
         "status_code" => [
             "operator" => "=",
         ],
-
         "created_by" => [
             "operator" => "=",
         ],
-
         "updated_by" => [
             "operator" => "=",
         ],
     ];
-
-
-    // =========================
-    // SEARCH & SORT
-    // =========================
 
     const FIELD_SEARCHABLE = [
         "title",
@@ -111,26 +92,11 @@ class Banner extends Model
         "updated_at",
     ];
 
-
-    // =========================
-    // UNIQUE
-    // =========================
-
     const FIELD_UNIQUE = [];
-
-
-    // =========================
-    // UPLOAD
-    // =========================
 
     const FIELD_UPLOAD = [
         "img_cover",
     ];
-
-
-    // =========================
-    // FIELD TYPE
-    // =========================
 
     const FIELD_TYPE = [
         "id" => "bigint",
@@ -144,26 +110,15 @@ class Banner extends Model
         "updated_at" => "timestamp_with_time_zone",
     ];
 
-
-    // =========================
-    // DEFAULT VALUE
-    // =========================
-
     const FIELD_DEFAULT_VALUE = [
         "title" => "",
         "img_cover" => "",
         "url" => "",
-        "status_code" => "true",
+        "status_code" => true,
         "created_by" => "",
     ];
 
-
-    // =========================
-    // RELATION
-    // =========================
-
     const FIELD_RELATION = [
-
         "created_by" => [
             "linkTable" => "users",
             "aliasTable" => "B",
@@ -183,47 +138,28 @@ class Banner extends Model
         ],
     ];
 
-
     const CUSTOM_RELATION = [];
 
     const CUSTOM_SELECT = "";
 
-
     const FIELD_VALIDATION = [
         "title" => "nullable|string|max:255",
-
         "img_cover" => "required|string|exists_file",
-
         "url" => "nullable|string",
-
         "status_code" => "required|boolean",
-
-        "created_by" => "required|integer",
-
+        "created_by" => "nullable|integer",
         "updated_by" => "nullable|integer",
     ];
-
 
     const PARENT_CHILD = [];
 
     const CUSTOM_LIST_FILTER = [];
 
-
-    // =========================
-    // CASTING
-    // =========================
-
     const FIELD_CASTING = [
         "status_code" => "boolean",
     ];
 
-
-    // =========================
-    // VALIDATION DATA
-    // =========================
-
     const FIELD_VALIDATION_DATA = [
-
         "created_by" => [
             "table" => "users",
             "field" => "id",
@@ -235,8 +171,28 @@ class Banner extends Model
         ],
     ];
 
-
     const CHILD_TABLE = [];
 
     const MAPPING_MULTIPLE_ADD = [];
+
+    public static function beforeInsert($input)
+    {
+        return $input;
+    }
+
+    public static function afterInsert($data, $input)
+    {
+        return [];
+    }
+
+    public static function beforeDelete($input)
+    {
+        return $input;
+    }
+
+    public static function afterDelete($data, $input)
+{
+    return [];
 }
+}
+

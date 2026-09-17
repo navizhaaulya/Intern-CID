@@ -52,6 +52,12 @@ Route::middleware(['setguard:api','auth.rest'])->group(function(){
 
  Route::post( '/votings/{id}/vote', [VotingController::class, 'vote']);
  Route::put('/votings/highlight', [VotingController::class, 'updateHighlight']);
+ Route::get('/admin/votings', [VotingController::class, 'index']);
+    Route::get('/admin/votings/{id}', [VotingController::class, 'show']);
+    Route::post('/admin/votings', [VotingController::class, 'store']);
+    Route::put('/admin/votings/{id}', [VotingController::class, 'update']);
+    Route::delete('/admin/votings/{id}', [VotingController::class, 'delete']);
+    Route::get('/admin/votings/{id}/voters', [VotingController::class, 'voters']);
 });
 
 Route::middleware('auth:api')->group(function () {
@@ -65,6 +71,7 @@ Route::middleware('auth:api')->group(function () {
 Route::group([
     'middleware' => ['setguard:api', 'auth.rest']
 ], function () {
+    Route::post('upload', [UploadController::class, 'upload'])->name("upload")->middleware('auth.rest');
 
     Route::get('/{model}', [CrudController::class, 'index']);
     Route::get('/{model}/dataset', [CrudController::class, 'dataset']);
@@ -73,7 +80,6 @@ Route::group([
     Route::delete('/{model}/{id}', [CrudController::class, 'delete']);
     Route::get('/{model}/{id}', [CrudController::class, 'show']);
 
-    // Route::post('upload', [UploadController::class, 'upload'])->name("upload")->middleware('auth.rest');
 
 
     Route::get('/gen-lang/lang', [CrudController::class, 'lang']);

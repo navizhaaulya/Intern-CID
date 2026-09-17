@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\CoreService\CoreException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\URL;
 use Intervention\Image\Facades\Image;
@@ -22,7 +23,7 @@ class UploadController extends Controller
         $file = request()->file('file');
         
         # Validasi Extension
-        $allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'gif', 'bmp', 'heic', 'doc', 'docx', 'webp', 'xls', 'xlsx', 'ppt', 'pptx'];
+        $allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'gif', 'bmp', 'heic', 'doc', 'docx', 'webp', 'xls', 'xlsx', 'jfif', 'ppt', 'pptx'];
         if (!in_array($file->getClientOriginalExtension(), $allowedExtensions)) return response()->json([
             "success" => false,
             "message" => "Format file tidak diijinkan"
@@ -104,6 +105,7 @@ class UploadController extends Controller
     public function getFile($model, $field, $id, $time)
     {
         $classModel = "\\App\\Models\\" . Str::ucfirst(Str::camel($model));
+        Log::debug($classModel);
         if (!class_exists($classModel))
             throw new CoreException("Not found", 404);
 

@@ -40,14 +40,22 @@ public function about(): JsonResponse
         return response()->json(['success' => false, 'message' => 'Data belum tersedia.'], 404);
     }
 
+    $imgProfile1 = $config->img_profile_1
+        ? columnValueToFileObject('img_profile_1', $config->img_profile_1, 'global_config', $config->id)
+        : null;
+
+    $imgProfile2 = $config->img_profile_2
+        ? columnValueToFileObject('img_profile_2', $config->img_profile_2, 'global_config', $config->id)
+        : null;
+
     return response()->json([
         'success' => true,
         'data'    => [
             'motto'                => $config->motto,
             'profile_title'        => $config->profile_title,
             'profile_description'  => $config->profile_description,
-            'img_profile_1'        => $config->img_profile_1,
-            'img_profile_2'        => $config->img_profile_2,
+            'img_profile_1'        => $imgProfile1,
+            'img_profile_2'        => $imgProfile2,
             'video_profile'        => $config->video_profile,
         ],
     ]);
