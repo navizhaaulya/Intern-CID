@@ -10,7 +10,7 @@ class Banner extends Model
     protected $dateFormat = 'c';
 
     const TABLE = "banners";
-    const FILEROOT = "/banners";
+    const FILEROOT = "banners";
 
     const IS_LIST = true;
     const IS_ADD = true;
@@ -181,6 +181,15 @@ class Banner extends Model
     }
 
     public static function afterInsert($data, $input)
+    {
+        return [];
+    }
+    public static function beforeUpdate($input)
+    {
+        return $input;
+    }
+
+    public static function afterUpdate($data, $input)
     {
         return [];
     }

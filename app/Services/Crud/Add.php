@@ -140,7 +140,7 @@ class Add extends CoreService
                 $originalname = pathinfo(storage_path($tmpPath), PATHINFO_FILENAME);
                 $ext = pathinfo(storage_path($tmpPath), PATHINFO_EXTENSION);
 
-                $newPath = "/" . date("Y") . "/" . date("Ym") . $classModel::FILEROOT . "/" . $originalname . "." . $ext;
+               $newPath = "/" . date("Y") . "/" . date("Ym") . "/" . $classModel::FILEROOT . "/" . $originalname . "." . $ext;
                 //START MOVE FILE
                 if (Storage::exists($newPath)) {
 

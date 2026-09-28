@@ -17,7 +17,7 @@ class News extends Model
     protected $table = 'news';
     protected $dateFormat = 'c';
     const TABLE = "news";
-    const FILEROOT = "/news";
+    const FILEROOT = "news";
     const IS_LIST = true;
     const IS_ADD = true;
     const IS_EDIT = true;
@@ -157,6 +157,11 @@ const FIELD_VALIDATION_DATA = [
 ];
 
 const CHILD_TABLE = [];
+
+public function category()
+{
+    return $this->belongsTo(NewsCategories::class, 'category_id');
+}
 
 public static function beforeInsert($input)
 {

@@ -8,7 +8,10 @@ use App\Models\VotingLogs;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+
+
 
 class VotingController extends Controller
 {
@@ -78,10 +81,10 @@ class VotingController extends Controller
             $i++;
         }
 
-        $voting = Voting::create([
-            'slug' => $slug,
-            'img_cover' => $request->input('img_cover'),
-            'title' => $request->input('title'),
+       $voting = Voting::create([
+    'slug' => $slug,
+    'img_cover' => $this->moveImageFromTmp($request->input('img_cover')),
+    'title' => $request->input('title'),
             'description' => $request->input('description'),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
@@ -102,9 +105,9 @@ class VotingController extends Controller
     {
         $voting = Voting::findOrFail($id);
 
-        $voting->update([
-            'img_cover' => $request->input('img_cover'),
-            'title' => $request->input('title'),
+       $voting->update([
+    'img_cover' => $this->moveImageFromTmp($request->input('img_cover')),
+    'title' => $request->input('title'),
             'description' => $request->input('description'),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
@@ -259,4 +262,22 @@ class VotingController extends Controller
             'data' => $voters
         ]);
     }
+
+    private function moveImageFromTmp($tmpPath, $folder = 'votings')
+{
+    if (!$tmpPath || !str_starts_with($tmpPath, 'tmp/')) {
+        return $tmpPath; // udah permanent atau kosong, biarin apa adanya
+    }
+
+    if (!Storage::exists($tmpPath)) {
+        return $tmpPath; // file tmp gak ketemu, biarin (biar gak fatal error)
+    }
+
+    $filename = basename($tmpPath);
+    $newPath = date('Y') . '/' . date('Ym') . '/' . $folder . '/' . time() . '_' . $filename;
+
+    Storage::move($tmpPath, $newPath);
+
+    return $newPath;
+}
 }

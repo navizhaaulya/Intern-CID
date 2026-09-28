@@ -15,7 +15,7 @@ class Voting extends Model
     ];
 
     const TABLE = "votings";
-    const FILEROOT = "/votings";
+    const FILEROOT = 'votings';
 
     const IS_LIST = true;
     const IS_ADD = false;  // tetap lewat VotingController::store (butuh slug custom)
@@ -115,10 +115,21 @@ class Voting extends Model
 
     const CHILD_TABLE = [];
     const MAPPING_MULTIPLE_ADD = [];
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'status_code' => 'boolean',
+        'is_highlight' => 'boolean',
+    ];
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function votingCandidates()
+    {
+        return $this->hasMany(VotingCandidates::class, 'voting_id');
     }
 
     public static function beforeInsert($input) { return $input; }

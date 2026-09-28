@@ -14,7 +14,7 @@ class VotingCandidates extends Model
     ];
 
     const TABLE = "voting_candidates";
-    const FILEROOT = "/voting_candidates";
+   const FILEROOT = 'voting_candidates';
 
     const IS_LIST = true;
     const IS_ADD = true;
@@ -101,7 +101,7 @@ class VotingCandidates extends Model
         "voting_id" => "required|integer",
         "img_cover" => "nullable|string",
         "title" => "required|string",
-        "description" => "nullable|string",
+        "description" => "required|string",
         "order" => "nullable|integer",
         "status_code" => "required|boolean",
         "created_by" => "nullable|integer",
@@ -116,9 +116,7 @@ class VotingCandidates extends Model
     ];
 
     const FIELD_VALIDATION_DATA = [
-        "voting_id" => ["table" => "votings", "field" => "id"],
-        "created_by" => ["table" => "users", "field" => "id"],
-        "updated_by" => ["table" => "users", "field" => "id"],
+
     ];
 
     const CHILD_TABLE = [];

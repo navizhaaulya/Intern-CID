@@ -9,9 +9,12 @@ use App\Models\FeedbackCategories;
 use App\Models\GlobalConfig;
 use App\Models\Major;
 use App\Models\Voting;
+use App\Models\VotingCandidates;
+use App\Models\NewsCategories;
 use App\Models\VotingLogs;
 use App\Models\News;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -20,17 +23,27 @@ use Illuminate\Validation\ValidationException;
 
 class PublicController extends Controller
 {
-    public function banners(): JsonResponse
-    {
-        $banners = Banner::where('status_code', true)
-            ->orderBy('id', 'desc')
-            ->get(['id', 'title', 'img_cover', 'url']);
+   public function banners(): JsonResponse
+{
+    $banners = Banner::where('status_code', true)
+        ->orderBy('id', 'desc')
+        ->get(['id', 'title', 'img_cover', 'url'])
+        ->map(function ($banner) {
+            return [
+                'id' => $banner->id,
+                'title' => $banner->title,
+                'img_cover' => $banner->img_cover
+                    ? url('api/file/banner/img_cover/' . $banner->id . '/' . time())
+                    : null,
+                'url' => $banner->url,
+            ];
+        });
 
-        return response()->json([
-            'success' => true,
-            'data'    => $banners,
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data'    => $banners,
+    ]);
+}
 
 public function about(): JsonResponse
 {
@@ -57,6 +70,8 @@ public function about(): JsonResponse
             'img_profile_1'        => $imgProfile1,
             'img_profile_2'        => $imgProfile2,
             'video_profile'        => $config->video_profile,
+            'school_name'       => $config->school_name, 
+            'headline_title'       => $config->headline_title, 
         ],
     ]);
 }
@@ -166,16 +181,37 @@ public function eventDetail(string $value): JsonResponse
 
 public function news(Request $request): JsonResponse
 {
-    $query = News::where('status', 'publish');
+    $query = News::where('status', 'publish')->with('category');
 
     if ($request->filled('search')) {
         $query->where('title', 'ILIKE', '%' . $request->search . '%');
+    }
+
+    if ($request->filled('category_id')) {
+        $query->where('category_id', $request->category_id);
     }
 
     $sortBy = $request->get('sort_by', 'created_at');
     $sort = $request->get('sort', 'desc');
 
     $query->orderBy($sortBy, $sort);
+
+    $transform = function ($item) {
+        return [
+            'id' => $item->id,
+            'slug' => $item->slug,
+            'title' => $item->title,
+            'content' => $item->content,
+            'author' => $item->author,
+            'img_cover' => $item->img_cover
+                ? url('api/file/news/img_cover/' . $item->id . '/' . time())
+                : null,
+            'status' => $item->status,
+            'category_id' => $item->category_id,
+            'category_name' => $item->category?->name,
+            'created_at' => $item->created_at,
+        ];
+    };
 
     if ($request->filled('limit')) {
         $news = $query->paginate($request->limit);
@@ -184,13 +220,26 @@ public function news(Request $request): JsonResponse
             'success' => true,
             'total' => $news->total(),
             'totalPage' => $news->lastPage(),
-            'data' => $news->items(),
+            'data' => $news->through($transform)->items(),
         ]);
     }
 
     return response()->json([
         'success' => true,
-        'data' => $query->get(),
+        'data' => $query->get()->map($transform)->values(),
+    ]);
+}
+
+// Endpoint baru — daftar kategori aktif buat filter chip
+public function newsCategories(): JsonResponse
+{
+    $categories = NewsCategories::where('active', true)
+        ->orderBy('name')
+        ->get(['id', 'name']);
+
+    return response()->json([
+        'success' => true,
+        'data' => $categories,
     ]);
 }
 
@@ -199,20 +248,28 @@ public function newsDetail(string $value): JsonResponse
     try {
 
         $news = News::where(function ($query) use ($value) {
-
                 if (is_numeric($value)) {
                     $query->where('id', $value);
                 }
-
                 $query->orWhere('slug', $value);
-
             })
             ->where('status', 'publish')
             ->firstOrFail();
 
         return response()->json([
             'success' => true,
-            'data' => $news,
+            'data' => [
+                'id' => $news->id,
+                'slug' => $news->slug,
+                'title' => $news->title,
+                'content' => $news->content,
+                'author' => $news->author,
+                'img_cover' => $news->img_cover
+                    ? url('api/file/news/img_cover/' . $news->id . '/' . time())
+                    : null,
+                'status' => $news->status,
+                'created_at' => $news->created_at,
+            ],
         ]);
 
     } catch (Exception $e) {
@@ -223,18 +280,6 @@ public function newsDetail(string $value): JsonResponse
         ], 404);
 
     }
-}
-
-public function feedbacks()
-{
-    $data = DB::table('feedbacks')
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    return response()->json([
-        'success' => true,
-        'data' => $data,
-    ]);
 }
    public function feedbackCategories(): JsonResponse
 {
@@ -294,96 +339,94 @@ public function feedbacks()
 
     // GET Voting aktif (card)
     public function voting(Request $request)
-    {
-        $search = $request->query('search');
-        $limit  = $request->query('limit');
-        $sort   = $request->query('sort', 'asc');
-        $sortBy = $request->query('sort_by', 'end_date');
+{
+    $search = $request->query('search');
+    $limit  = $request->query('limit');
+    $sort   = $request->query('sort', 'asc');
+    $sortBy = $request->query('sort_by', 'end_date');
 
-       $query = Voting::where('status_code', true)
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('title', 'ilike', "%{$search}%")
-                        ->orWhere('description', 'ilike', "%{$search}%");
-                });
-            })
-            ->withCount('votingCandidate')
-            ->orderBy($sortBy, $sort);
+    $query = Voting::where('status_code', true)
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%")
+                    ->orWhere('description', 'ilike', "%{$search}%");
+            });
+        })
+        ->withCount('votingCandidates')
+        ->orderBy($sortBy, $sort);
 
-       $transform = function ($item) {
+    $transform = function ($item) {
 
-    $totalVotes = VotingLogs::where('voting_id', $item->id)->count();
+        $totalVotes = VotingLogs::where('voting_id', $item->id)->count();
 
-    return [
-        'id' => $item->id,
-        'slug' => $item->slug,
-        'title' => $item->title,
-        'description' => $item->description,
-        'img_cover' => $item->img_cover,
-        'start_date' => $item->start_date?->format('d M Y H:i'),
-        'end_date' => $item->end_date?->format('d M Y H:i'),
-        'is_highlight' => $item->is_highlight,
+        return [
+            'id' => $item->id,
+            'slug' => $item->slug,
+            'title' => $item->title,
+            'description' => $item->description,
+           'img_cover' => $item->img_cover ? url('api/file/voting/img_cover/' . $item->id . '/' . time()) : null,
+            'start_date' => $item->start_date?->format('d M Y H:i'),
+            'end_date' => $item->end_date?->format('d M Y H:i'),
+            'is_highlight' => $item->is_highlight,
 
-        'candidates' => $item->votingCandidate->map(function ($candidate) use ($item, $totalVotes) {
+            'candidates' => $item->votingCandidates->map(function ($candidate) use ($item, $totalVotes) {
 
-            $voteCount = VotingLogs::where('voting_id', $item->id)
-                ->where('candidate_id', $candidate->id)
-                ->count();
+                $voteCount = VotingLogs::where('voting_id', $item->id)
+                    ->where('candidate_id', $candidate->id)
+                    ->count();
 
-            return [
-                'id' => $candidate->id,
-                'order' => $candidate->order,
-                'title' => $candidate->title,
-                'description' => $candidate->description,
-                'img_cover' => $candidate->img_cover,
+                return [
+                    'id' => $candidate->id,
+                    'order' => $candidate->order,
+                    'title' => $candidate->title,
+                    'description' => $candidate->description,
+                    'img_cover' => $candidate->img_cover ? url('api/file/voting_candidates/img_cover/' . $candidate->id . '/' . time()) : null,
 
-                'vote_count' => $voteCount,
+                    'vote_count' => $voteCount,
 
-                'percentage' => $totalVotes > 0
-                    ? round(($voteCount / $totalVotes) * 100, 1)
-                    : 0
-            ];
-        })->values()
-    ];
-};
+                    'percentage' => $totalVotes > 0
+                        ? round(($voteCount / $totalVotes) * 100, 1)
+                        : 0
+                ];
+            })->values()
+        ];
+    };
 
-        // Kalau limit tidak dikirim (null) atau eksplisit 'all', tampilkan semua data
-        if ($limit === null || $limit === 'all') {
-            $votings = $query->get();
-
-            return response()->json([
-                'success'     => true,
-                'total'       => $votings->count(),
-                'totalPage'   => 1,
-                'currentPage' => 1,
-                'data'        => $votings->map($transform)->values(),
-            ]);
-        }
-
-        $votings = $query->paginate((int) $limit);
+    if ($limit === null || $limit === 'all') {
+        $votings = $query->get();
 
         return response()->json([
             'success'     => true,
-            'total'       => $votings->total(),
-            'totalPage'   => $votings->lastPage(),
-            'currentPage' => $votings->currentPage(),
-            'data'        => $votings->through($transform)->items(),
+            'total'       => $votings->count(),
+            'totalPage'   => 1,
+            'currentPage' => 1,
+            'data'        => $votings->map($transform)->values(),
         ]);
     }
 
-    public function votingDetail(string $slug): JsonResponse
+    $votings = $query->paginate((int) $limit);
+
+    return response()->json([
+        'success'     => true,
+        'total'       => $votings->total(),
+        'totalPage'   => $votings->lastPage(),
+        'currentPage' => $votings->currentPage(),
+        'data'        => $votings->through($transform)->items(),
+    ]);
+}
+
+   public function votingDetail(string $slug): JsonResponse
 {
     try {
 
         $voting = Voting::where('slug', $slug)
             ->where('status_code', true)
-            ->with('votingCandidate')
+            ->with('votingCandidates')
             ->firstOrFail();
 
         $totalVotes = VotingLogs::where('voting_id', $voting->id)->count();
 
-        $candidates = $voting->votingCandidate->map(function ($candidate) use ($voting, $totalVotes) {
-
+        $candidates = $voting->votingCandidates->map(function ($candidate) use ($voting, $totalVotes) {
             $voteCount = VotingLogs::where('voting_id', $voting->id)
                 ->where('candidate_id', $candidate->id)
                 ->count();
@@ -393,7 +436,7 @@ public function feedbacks()
                 'order' => $candidate->order,
                 'title' => $candidate->title,
                 'description' => $candidate->description,
-                'img_cover' => $candidate->img_cover,
+                'img_cover' => $candidate->img_cover ? url('api/file/voting_candidates/img_cover/' . $candidate->id . '/' . time()) : null,
 
                 'vote_count' => $voteCount,
 
@@ -411,7 +454,7 @@ public function feedbacks()
                 'slug' => $voting->slug,
                 'title' => $voting->title,
                 'description' => $voting->description,
-                'img_cover' => $voting->img_cover,
+                'img_cover' => $voting->img_cover ? url('api/file/voting/img_cover/' . $voting->id . '/' . time()) : null,
                 'start_date' => $voting->start_date?->format('d M Y H:i'),
                 'end_date' => $voting->end_date?->format('d M Y H:i'),
                 'is_highlight' => $voting->is_highlight,
@@ -420,13 +463,12 @@ public function feedbacks()
         ]);
 
     } catch (Exception $e) {
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Voting tidak ditemukan.',
-        ], 404);
-
-    }
+    Log::error('votingDetail error: ' . $e->getMessage());
+    return response()->json([
+        'success' => false,
+        'message' => 'Voting tidak ditemukan.',
+    ], 404);
+}
 }
 
     public function majors(): JsonResponse

@@ -46,6 +46,7 @@ use App\Http\Controllers\VotingController;
    
     Route::get('/no-auth/news', [PublicController::class, 'news']);
     Route::get('/no-auth/news/{id}', [PublicController::class, 'NewsDetail']);
+    Route::get('/no-auth/news-categories', [PublicController::class, 'newsCategories']);
 
 Route::middleware(['setguard:api','auth.rest'])->group(function(){
  Route::get('/feedbacks', [PublicController::class, 'feedbacks']);

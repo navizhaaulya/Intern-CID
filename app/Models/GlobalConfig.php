@@ -10,7 +10,7 @@ class GlobalConfig extends Model
     protected $dateFormat = 'c';
 
     protected $casts = [
-        'missions' => 'array',   // ⬅️ tambahkan ini
+        'missions' => 'array',
     ];
 
     const TABLE = "global_config";
@@ -22,13 +22,13 @@ class GlobalConfig extends Model
     const IS_DELETE = false;
     const IS_VIEW = true;
 
+    // Field lengkap (termasuk visi/misi/profil, dipakai modul lain)
     const FIELD_LIST = [
         "id",
         "profile_title",
         "profile_description",
         "img_profile_1",
         "img_profile_2",
-        "school_vission",
         "video_profile",
         "vision",
         "missions",
@@ -41,6 +41,7 @@ class GlobalConfig extends Model
         "footer_yt",
         "footer_fb",
         "footer_linkedin",
+        "headline_title",
         "created_by",
         "updated_by",
         "created_at",
@@ -49,14 +50,8 @@ class GlobalConfig extends Model
 
     const FIELD_ADD = [];
 
+    // Yang bisa diedit lewat form Global Config baru (TANPA visi/misi/profil)
     const FIELD_EDIT = [
-        "profile_title",
-        "profile_description",
-        "img_profile_1",
-        "img_profile_2",
-        "video_profile",
-        "vision",
-        "missions",
         "school_name",
         "footer_description",
         "motto",
@@ -66,6 +61,7 @@ class GlobalConfig extends Model
         "footer_yt",
         "footer_fb",
         "footer_linkedin",
+        "headline_title",
         "updated_by",
     ];
 
@@ -87,6 +83,7 @@ class GlobalConfig extends Model
         "footer_yt",
         "footer_fb",
         "footer_linkedin",
+        "headline_title",
         "created_by",
         "updated_by",
         "created_at",
@@ -96,15 +93,10 @@ class GlobalConfig extends Model
     const FIELD_READONLY = [];
 
     const FIELD_FILTERABLE = [
-        "id" => [
-            "operator" => "=",
-        ],
+        "id" => ["operator" => "="],
     ];
 
     const FIELD_SEARCHABLE = [];
-
-    // "missions" is json/array — flag it here so the CRUD service
-    // knows to encode/decode it instead of treating it as plain text
     const FIELD_ARRAY = [];
 
     const FIELD_SORTABLE = [
@@ -113,7 +105,6 @@ class GlobalConfig extends Model
     ];
 
     const FIELD_UNIQUE = [];
-
     const FIELD_UPLOAD = [
         "img_profile_1",
         "img_profile_2",
@@ -125,7 +116,6 @@ class GlobalConfig extends Model
         "profile_description" => "text",
         "img_profile_1" => "text",
         "img_profile_2" => "text",
-        "school_vission" => "text",
         "video_profile" => "text",
         "vision" => "text",
         "missions" => "json",
@@ -138,6 +128,7 @@ class GlobalConfig extends Model
         "footer_yt" => "text",
         "footer_fb" => "text",
         "footer_linkedin" => "text",
+        "headline_title" => "character_varying",
         "created_by" => "bigint",
         "updated_by" => "bigint",
         "created_at" => "timestamp_with_time_zone",
@@ -151,30 +142,25 @@ class GlobalConfig extends Model
 
     const FIELD_RELATION = [
         "created_by" => [
-            "linkTable" => "users",
-            "aliasTable" => "B",
-            "linkField" => "id",
+            "linkTable" => "users", "aliasTable" => "B", "linkField" => "id",
             "displayName" => "rel_created_by",
-            "selectFields" => ["id", "fullname"],
-            "selectValue" => "id AS rel_created_by",
+            "selectFields" => ["id", "fullname"], "selectValue" => "id AS rel_created_by",
         ],
         "updated_by" => [
-            "linkTable" => "users",
-            "aliasTable" => "C",
-            "linkField" => "id",
+            "linkTable" => "users", "aliasTable" => "C", "linkField" => "id",
             "displayName" => "rel_updated_by",
-            "selectFields" => ["id", "fullname"],
-            "selectValue" => "id AS rel_updated_by",
+            "selectFields" => ["id", "fullname"], "selectValue" => "id AS rel_updated_by",
         ],
     ];
 
     const CUSTOM_RELATION = [];
     const CUSTOM_SELECT = "";
 
+    // Validasi lengkap tetap ada semua (biar modul lain yang edit vision/missions/profile tetap jalan)
     const FIELD_VALIDATION = [
         "profile_title" => "nullable|string|max:255",
         "profile_description" => "nullable|string",
-        "img_profile_1" => "nullable|string|exists_file",
+        "img_profile_1" => "nullable|string",
         "img_profile_2" => "nullable|string",
         "video_profile" => "nullable|string",
         "vision" => "nullable|string",
@@ -188,53 +174,25 @@ class GlobalConfig extends Model
         "footer_yt" => "nullable|string",
         "footer_fb" => "nullable|string",
         "footer_linkedin" => "nullable|string",
+        "headline_title" => "nullable|string|max:255",
         "updated_by" => "nullable|integer",
     ];
 
     const PARENT_CHILD = [];
     const CUSTOM_LIST_FILTER = [];
-
-    const FIELD_CASTING = [
-        "missions" => "array",
-    ];
+    const FIELD_CASTING = ["missions" => "array"];
 
     const FIELD_VALIDATION_DATA = [
-        "updated_by" => [
-            "table" => "users",
-            "field" => "id",
-        ],
+        "updated_by" => ["table" => "users", "field" => "id"],
     ];
 
     const CHILD_TABLE = [];
     const MAPPING_MULTIPLE_ADD = [];
 
-        public static function beforeInsert($input)
-    {
-        return $input;
-    }
-
-    public static function afterInsert($data, $input)
-    {
-        return [];
-    }
-
-    public static function beforeUpdate($input)
-    {
-        return $input;
-    }
-
-    public static function afterUpdate($data, $input)
-    {
-        return [];
-    }
-
-    public static function beforeDelete($input)
-    {
-        return $input;
-    }
-
-    public static function afterDelete($data, $input)
-    {
-        return [];
-    }
+    public static function beforeInsert($input) { return $input; }
+    public static function afterInsert($data, $input) { return []; }
+    public static function beforeUpdate($input) { return $input; }
+    public static function afterUpdate($data, $input) { return []; }
+    public static function beforeDelete($input) { return $input; }
+    public static function afterDelete($data, $input) { return []; }
 }

@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Log;
 
 class CallService
 {
-
     public static function execute($serviceName, $input)
     {
         
