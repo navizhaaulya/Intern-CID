@@ -281,12 +281,10 @@ public function newsDetail(string $value): JsonResponse
 
     }
 }
-   public function feedbackCategories(): JsonResponse
+  public function feedbackCategories(): JsonResponse
 {
-   $categories = FeedbackCategories::get([
-    'id',
-    'category_name'
-]);
+    $categories = FeedbackCategories::where('status', true)
+        ->get(['id', 'category_name']);
 
     return response()->json([
         'success' => true,
@@ -471,17 +469,31 @@ public function newsDetail(string $value): JsonResponse
 }
 }
 
-    public function majors(): JsonResponse
-    {
-        $majors = Major::where('status_code', true)
-            ->orderBy('major_name', 'asc')
-            ->get(['id', 'slug', 'img_logo', 'code', 'major_name', 'summary', 'total_classes', 'major_duration']);
+   public function majors(): JsonResponse
+{
+    $majors = Major::where('status_code', true)
+        ->with(['competencies' => function ($q) {
+            $q->where('status_code', true)->orderBy('id')->limit(3);
+        }])
+        ->orderBy('id')
+        ->get()
+        ->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'slug' => $m->slug,
+                'code' => $m->code,
+                'major_name' => $m->major_name,
+                'summary' => $m->summary,
+                'img_logo' => $m->img_logo ? url('api/file/major/img_logo/' . $m->id . '/' . time()) : null,
+                'competencies' => $m->competencies->pluck('competent_name')->values(),
+            ];
+        });
 
-        return response()->json([
-            'success' => true,
-            'data'    => $majors,
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => $majors,
+    ]);
+}
 
    public function majorDetail(string $slug): JsonResponse
 {
