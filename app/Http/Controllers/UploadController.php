@@ -21,6 +21,13 @@ class UploadController extends Controller
         // $req = request()->all();
         // $path = request()->file('file')->store('tmp');
         $file = request()->file('file');
+
+         if (!$file || !$file->isValid()) {
+        return response()->json([
+            "success" => false,
+            "message" => "File gagal diupload. Kemungkinan ukuran file melebihi batas server."
+        ], 422);
+    }
         
         # Validasi Extension
         $allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'gif', 'bmp', 'heic', 'doc', 'docx', 'webp', 'xls', 'xlsx', 'jfif', 'ppt', 'pptx'];

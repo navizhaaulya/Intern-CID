@@ -222,7 +222,6 @@ class VotingController extends Controller
             'voting_id' => $id,
             'candidate_id' => $request->candidate_id,
             'user_id' => $user->id,
-            'created_by' => $user->id,
         ]);
 
         return response()->json([

@@ -483,40 +483,57 @@ public function newsDetail(string $value): JsonResponse
         ]);
     }
 
-    public function majorDetail(string $slug): JsonResponse
-    {
-        try {
-            $major = Major::where('slug', $slug)
-                ->where('status_code', true)
-                ->with(['competents', 'galleries'])
-                ->firstOrFail();
+   public function majorDetail(string $slug): JsonResponse
+{
+    $major = Major::where('slug', $slug)
+        ->where('status_code', true)
+        ->with(['competencies', 'galleries'])
+        ->first();
 
-            return response()->json([
-                'success' => true,
-                'data'    => [
-                    'slug'             => $major->slug,
-                    'img_logo'         => $major->img_logo,
-                    'code'             => $major->code,
-                    'major_name'       => $major->major_name,
-                    'summary'          => $major->summary,
-                    'total_classes'    => $major->total_classes,
-                    'major_duration'   => $major->major_duration,
-                    'full_description' => $major->full_description,
-                    'competents'       => $major->competents->map(fn ($c) => [
-                        'competent_name' => $c->competent_name,
-                        'description'    => $c->description,
-                    ]),
-                    'galleries'        => $major->galleries->map(fn ($g) => [
-                        'img_cover'   => $g->img_cover,
-                        'description' => $g->description,
-                    ]),
-                ],
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Jurusan tidak ditemukan.',
-            ], 404);
-        }
+    if (!$major) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Jurusan tidak ditemukan.',
+        ], 404);
     }
+
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'id' => $major->id,
+            'slug' => $major->slug,
+            'code' => $major->code,
+            'major_name' => $major->major_name,
+            'summary' => $major->summary,
+            'total_classes' => $major->total_classes,
+            'major_duration' => $major->major_duration,
+            'full_description' => $major->full_description,
+            'img_logo' => $this->fileUrl('major', 'img_logo', $major->id, $major->img_logo),
+            'competencies' => $major->competencies->sortBy('id')->map(fn ($c) => [
+                'id' => $c->id,
+                'competent_name' => $c->competent_name,
+                'description' => $c->description,
+            ])->values(),
+            'galleries' => $major->galleries->sortBy('id')->map(fn ($g) => [
+                'id' => $g->id,
+                'img_cover' => $this->fileUrl('major_gallery', 'img_cover', $g->id, $g->img_cover),
+                'description' => $g->description,
+            ])->values(),
+        ],
+    ]);
+}
+
+private function fileUrl(string $model, string $field, int $id, ?string $value): ?string
+{
+    if (!$value) {
+        return null;
+    }
+
+    // data uji yang isinya link eksternal dipakai apa adanya
+    if (str_starts_with($value, 'http')) {
+        return $value;
+    }
+
+    return url("api/file/{$model}/{$field}/{$id}/" . time());
+}
 }

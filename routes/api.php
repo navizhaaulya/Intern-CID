@@ -11,20 +11,6 @@ use App\Http\Controllers\bannerController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\VotingController;
 
-
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-
     Route::get('/no-auth/banners', [PublicController::class, 'banners']);
     Route::get('/no-auth/about', [PublicController::class, 'about']);
     Route::get('/no-auth/vision-mission', [PublicController::class, 'visionMission']);

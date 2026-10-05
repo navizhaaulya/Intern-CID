@@ -52,18 +52,25 @@ class GlobalConfig extends Model
 
     // Yang bisa diedit lewat form Global Config baru (TANPA visi/misi/profil)
     const FIELD_EDIT = [
-        "school_name",
-        "footer_description",
-        "motto",
-        "school_telephone",
-        "school_email",
-        "footer_ig",
-        "footer_yt",
-        "footer_fb",
-        "footer_linkedin",
-        "headline_title",
-        "updated_by",
-    ];
+    "profile_title",
+    "profile_description",
+    "img_profile_1",
+    "img_profile_2",
+    "video_profile",
+    "vision",
+    "missions",
+    "school_name",
+    "footer_description",
+    "motto",
+    "school_telephone",
+    "school_email",
+    "footer_ig",
+    "footer_yt",
+    "footer_fb",
+    "footer_linkedin",
+    "headline_title",
+    "updated_by",
+];
 
     const FIELD_VIEW = [
         "id",
